@@ -1,0 +1,448 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard3 {% endblock %} 
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini {% endblock body_class %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- IonIcons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+
+{% endblock stylesheets %}
+
+{% block content %}    
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">Network Graph & Benford Analysis</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard v3</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-7">
+            <div class="card">
+              <div class="card-header border-0">
+                <div class="d-flex justify-content-between">
+                  <h3 class="card-title">Network Graph</h3>
+                  <a href="javascript:void(0);">View Report</a>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="d-flex">
+                  <p class="d-flex flex-column">
+                    <span class="text-bold text-lg">820</span>
+                    <span>Visitors Over Time</span>
+                  </p>
+                  <p class="ml-auto d-flex flex-column text-right">
+                    <span class="text-success">
+                      <i class="fas fa-arrow-up"></i> 12.5%
+                    </span>
+                    <span class="text-muted">Since last week</span>
+                  </p>
+                </div>
+                <!-- /.d-flex -->
+
+                <div class="position-relative mb-4">
+				  <div id="containerGraph"></div>
+                </div>
+
+                <div class="d-flex flex-row justify-content-end">
+                  <span class="mr-2">
+                    <i class="fas fa-square text-primary"></i> This Week
+                  </span>
+
+                  <span>
+                    <i class="fas fa-square text-gray"></i> Last Week
+                  </span>
+                </div>
+              </div>
+            </div>
+            <!-- /.card -->
+          </div>
+          <!-- /.col-md-6 -->
+          <div class="col-lg-5">
+            <div class="card">
+              <div class="card-header border-0">
+                <div class="d-flex justify-content-between">
+                  <h3 class="card-title">Sales</h3>
+                  <a href="javascript:void(0);">View Report</a>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="d-flex">
+                  <p class="d-flex flex-column">
+                    <span class="text-bold text-lg">$18,230.00</span>
+                    <span>Sales Over Time</span>
+                  </p>
+                  <p class="ml-auto d-flex flex-column text-right">
+                    <span class="text-success">
+                      <i class="fas fa-arrow-up"></i> 33.1%
+                    </span>
+                    <span class="text-muted">Since last month</span>
+                  </p>
+                </div>
+                <!-- /.d-flex -->
+
+                <div class="position-relative mb-4">
+				  <div id="containerBenford"></div>
+                </div>
+
+                <div class="d-flex flex-row justify-content-end">
+                  <span class="mr-2">
+                    <i class="fas fa-square text-primary"></i> This year
+                  </span>
+
+                  <span>
+                    <i class="fas fa-square text-gray"></i> Last year
+                  </span>
+                </div>
+              </div>
+            </div>
+            <!-- /.card -->
+
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">Online Store Overview</h3>
+                <div class="card-tools">
+                  <a href="#" class="btn btn-sm btn-tool">
+                    <i class="fas fa-download"></i>
+                  </a>
+                  <a href="#" class="btn btn-sm btn-tool">
+                    <i class="fas fa-bars"></i>
+                  </a>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center border-bottom mb-3">
+                  <p class="text-success text-xl">
+                    <i class="ion ion-ios-refresh-empty"></i>
+                  </p>
+                  <p class="d-flex flex-column text-right">
+                    <span class="font-weight-bold">
+                      <i class="ion ion-android-arrow-up text-success"></i> 12%
+                    </span>
+                    <span class="text-muted">CONVERSION RATE</span>
+                  </p>
+                </div>
+                <!-- /.d-flex -->
+                <div class="d-flex justify-content-between align-items-center border-bottom mb-3">
+                  <p class="text-warning text-xl">
+                    <i class="ion ion-ios-cart-outline"></i>
+                  </p>
+                  <p class="d-flex flex-column text-right">
+                    <span class="font-weight-bold">
+                      <i class="ion ion-android-arrow-up text-warning"></i> 0.8%
+                    </span>
+                    <span class="text-muted">SALES RATE</span>
+                  </p>
+                </div>
+                <!-- /.d-flex -->
+                <div class="d-flex justify-content-between align-items-center mb-0">
+                  <p class="text-danger text-xl">
+                    <i class="ion ion-ios-people-outline"></i>
+                  </p>
+                  <p class="d-flex flex-column text-right">
+                    <span class="font-weight-bold">
+                      <i class="ion ion-android-arrow-down text-danger"></i> 1%
+                    </span>
+                    <span class="text-muted">REGISTRATION RATE</span>
+                  </p>
+                </div>
+                <!-- /.d-flex -->
+              </div>
+            </div>
+          </div>
+          <!-- /.col-md-6 -->
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.container-fluid -->
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE -->
+  <script src="/static/assets/js/adminlte.js"></script>
+
+  <!-- OPTIONAL SCRIPTS -->
+  <script src="/static/assets/plugins/chart.js/Chart.min.js"></script>
+  <script src="/static/assets/js/demo.js"></script>
+  <script src="/static/assets/js/pages/dashboard3.js"></script>
+<script src="/static/assets/js/highcharts.js" charset="utf-8"></script>
+<script src="/static/assets/js/networkgraph.js" charset="utf-8"></script>
+<script>
+var dirDist50 = "#E8544E",
+  dirDist10 = "#FFD265",
+  dirDistLess10 = "#2AA775";
+
+Highcharts.chart('containerGraph', {
+
+  chart: {
+    type: 'networkgraph',
+    marginTop: 80
+  },
+
+  title: {
+    text: 'South Korea domestic flight routes'
+  },
+
+tooltip:{
+  formatter:function(){
+    var info="";
+    switch(this.color){
+        case dirDist50: 
+        console.log(dirDist50);
+        info="is an aiport <b>more than 50</b> direct distinations"
+        break;
+        case dirDist10: 
+        console.log(dirDist10);;
+        info="is an aiport <b>more than 10</b> direct distinations"
+        break;
+        case dirDistLess10: 
+        console.log(dirDistLess10);;
+        info="is an aiport <b>less than 10</b> direct distinations"
+        break;
+    }
+    return "<b>"+this.key + "</b>: "+info;
+  }
+},
+
+
+  plotOptions: {
+    networkgraph: {
+      keys: ['from', 'to'],
+      layoutAlgorithm: {
+        enableSimulation: true,
+        integration: 'verlet',
+        linkLength: 100
+      }
+    }
+  },
+
+  series: [{
+    marker: {
+      radius: 13,
+    },
+    dataLabels: {
+      enabled: true,
+      linkFormat: '',
+      allowOverlap: true,style: {
+                    textOutline: false 
+                }
+    },
+    data: [
+      ['Seoul ICN', 'Daegu'],
+      ['Seoul ICN', 'Busan'],
+      ['Busan', 'Seoul GMP'],
+      ['Busan', 'Yangyang'],
+      
+      
+      
+      ['Daegu', 'Seoul GMP'],
+      ['Daegu', 'Jeju'],
+      
+      ['Seoul GMP', 'Gwangju'],
+      ['Seoul GMP', 'Yeosu'],
+      ['Seoul GMP', 'Sacheon'],
+      ['Seoul GMP', 'Ulsan'],
+      ['Seoul GMP', 'Pohang'],
+      
+      ['Jeju', 'Gwangju'],
+      ['Jeju', 'Gunsan'],
+      ['Jeju', 'Wonju'],
+      ['Jeju', 'Yangyang'],
+      ['Jeju', 'Daegu'],
+      ['Jeju', 'Yeosu'],
+      ['Jeju', 'Sacheon'],
+      ['Jeju', 'Ulsan'],
+      ['Jeju', 'Busan'],
+      ['Jeju', 'Cheongju'],
+    ],
+    nodes: [{
+        id: 'Seoul ICN',
+        marker: {
+          radius: 30,
+        },
+        color: dirDist50
+      }, {
+        id: 'Daegu',
+        marker: {
+          radius: 10,
+        },
+        color: dirDistLess10
+      }, {
+        id: 'Busan',
+        marker: {
+          radius: 30},
+        color: dirDist50
+      }, {
+        id: 'Seoul GMP',
+        marker: {
+          radius: 20,
+        },
+        color: dirDist10
+      },
+      {
+        id: 'Jeju',
+        marker: {
+          radius: 30,
+        },
+        color: dirDist50
+      },{
+        id: 'Gwangju',
+        marker: {
+          radius: 10,
+        },
+        color: dirDistLess10
+      }, {
+        id: 'Yeosu',
+        marker: {
+          radius: 10,
+        },
+        color: dirDistLess10
+      }, {
+        id: 'Sacheon',
+        marker: {
+          radius: 10,
+        },
+        color: dirDistLess10
+      }, {
+        id: 'Ulsan',
+        marker: {
+          radius: 10,
+        },
+        color: dirDistLess10
+      }, {
+        id: 'Pohang',
+        marker: {
+          radius: 20,
+        },
+        color: dirDist10
+      }, {
+        id: 'Gunsan',
+        marker: {
+          radius: 10,
+        },
+        color: dirDistLess10
+      }, {
+        id: 'Wonju',
+        marker: {
+          radius: 10,
+        },
+        color: dirDistLess10
+      }, {
+        id: 'Yangyang',
+        marker: {
+          radius: 10,
+        },
+        color: dirDistLess10
+      }, {
+        id: 'Cheongju',
+        marker: {
+          radius: 20,
+        },
+        color: dirDist10
+      },]
+  }]
+});
+</script>
+<script>
+Highcharts.chart('containerBenford', {
+
+  title: {
+    text: 'Solar Employment Growth by Sector, 2010-2016'
+  },
+
+  subtitle: {
+    text: 'Source: thesolarfoundation.com'
+  },
+
+  yAxis: {
+    title: {
+      text: 'Number of Employees'
+    }
+  },
+
+  xAxis: {
+    accessibility: {
+      rangeDescription: 'Range: 2010 to 2017'
+    }
+  },
+
+  legend: {
+    layout: 'vertical',
+    align: 'right',
+    verticalAlign: 'middle'
+  },
+
+  plotOptions: {
+    series: {
+      label: {
+        connectorAllowed: false
+      },
+      pointStart: 2010
+    }
+  },
+
+  series: [{
+    name: 'Installation',
+    data: [43934, 52503, 57177, 69658, 97031, 119931, 137133, 154175]
+  },{
+    name: 'Other',
+    data: [12908, 5948, 8105, 11248, 8989, 11816, 18274, 18111]
+  }],
+
+  responsive: {
+    rules: [{
+      condition: {
+        maxWidth: 500
+      },
+      chartOptions: {
+        legend: {
+          layout: 'horizontal',
+          align: 'center',
+          verticalAlign: 'bottom'
+        }
+      }
+    }]
+  }
+
+});
+</script>
+
+{% endblock javascripts %}
