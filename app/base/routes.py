@@ -3,7 +3,7 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-from flask import jsonify, render_template, redirect, request, url_for
+from flask import jsonify, render_template, redirect, request, url_for, send_from_directory, current_app
 from flask_login import (
     current_user,
     login_required,
@@ -15,6 +15,8 @@ from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm
 from app.base.models import User
+from app.base.uploads import Upload
+from app.base.corpus import Corpus
 
 from app.base.util import verify_pass
 
@@ -100,6 +102,23 @@ def shutdown():
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
     return 'Server shutting down...'
+
+@blueprint.route('/upload', methods=['POST'])
+def upload_files():
+    uploaded_file = request.files['file']
+    return Upload.upload_files(uploaded_file)
+    
+@blueprint.route('/upload/<filename>')
+def upload(filename):
+    return send_from_directory(current_app.config['UPLOAD_PATH'], filename)
+    
+@blueprint.route('/delete/<filename>')
+def delete(filename):
+    return Upload.delete_files(filename)
+    
+@blueprint.route('/process/<filename>')
+def process(filename):
+    return Corpus.process(filename)
 
 ## Errors
 

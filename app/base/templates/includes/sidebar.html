@@ -25,13 +25,15 @@
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
-		  <li class="nav-header">LOAD DATA</li>
-          <li class="nav-item">
-            <a href="#" class="nav-link">
-              <i class="nav-icon far fa-circle text-info"></i>
-              <p>Informational</p>
-            </a>
-          </li>
+		  <li class="nav-header">LIST DOKUMEN</li>
+		  {% for file in files %}
+			  <li class="nav-item">
+				<a href="#" class="nav-link">
+				  <i class="nav-icon far fa-circle text-info"></i>
+				  <p>{{ url_for('base_blueprint.upload', filename=file) }}</p>
+				</a>
+              </li>
+		  {% endfor %}
         </ul>
       </nav>
       <!-- /.sidebar-menu -->

@@ -12,6 +12,7 @@ from config import config_dict
 from app import create_app, db
 
 import os
+import sqlite3
 
 # WARNING: Don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True)
@@ -31,6 +32,10 @@ app = create_app( app_config )
 Migrate(app, db)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
+app.config['UPLOAD_PATH'] = "/SOURCE/AudiTREE/document"
+app.config['DB_PATH'] = "/SOURCE/AudiTREE"
+
+conn = sqlite3.connect(os.path.join(app.config['DB_PATH'], 'auditree.db'))
 
 if __name__ == "__main__":
     app.run()

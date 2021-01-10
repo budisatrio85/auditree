@@ -22,7 +22,7 @@
 {% block content %}    
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
+  <div class="content-wrapper" style="margin-left:0px">
     <!-- Content Header (Page header) -->
     <div class="content-header">
       <div class="container-fluid">
@@ -31,10 +31,13 @@
             <h1 class="m-0 text-dark">Network Graph & Benford Analysis</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Dashboard v3</li>
-            </ol>
+            <div class="user-panel float-sm-right">
+				<div class="info">
+				  <a href="{{ url_for('base_blueprint.logout') }}" class="d-block">
+					{{ current_user.username }} - Logout
+				  </a>
+				</div>
+			</div>
           </div><!-- /.col -->
         </div><!-- /.row -->
       </div><!-- /.container-fluid -->
@@ -44,138 +47,163 @@
     <div class="content">
       <div class="container-fluid">
         <div class="row">
-          <div class="col-lg-7">
+          <div class="col-lg-2">         
+			<div class="card">
+					<form method="POST" action="/upload" enctype="multipart/form-data" class="form-group">
+              <div class="card-header border-0">
+                <h3 class="card-title">Input File</h3>
+              </div>
+              <div class="card-body">
+                <div>
+						<div class="form-group">
+						  <div class="custom-file">
+							<input type="file" name="file" accept="application/pdf">
+						  </div>
+						</div>
+                </div>
+              </div>
+			  <div class="card-footer">
+                  <input type="submit" class="btn btn-primary">
+              </div>
+					</form>
+            </div>  
+			<div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">Library</h3>
+              </div>
+              <div class="card-body">
+				<ul class="products-list product-list-in-card pl-2 pr-2">
+			  {% for file in files %}
+                  <li class="item">
+                    <div>
+                      <a href="{{url_for('base_blueprint.upload', filename=file)}}" class="product-title">{{file}}</a>
+                      <span class="product-description">
+                        <a href="{{url_for('base_blueprint.process', filename=file)}}" class="btn btn-xs btn-success" onclick="document.getElementById('loader').style.display = 'block'"> <i class="ion ion-ios-play"></i> Process</a>
+                        <a href="{{url_for('base_blueprint.delete', filename=file)}}" class="btn btn-xs btn-danger"> <i class="ion ion-ios-trash"></i> Delete</a>
+                      </span>
+                    </div>
+                  </li>
+			  {% endfor %}
+                </ul>
+              </div>
+            </div>
+		  </div>
+          <!-- /.col-md-6 -->
+          <div class="col-lg-6">
             <div class="card">
               <div class="card-header border-0">
                 <div class="d-flex justify-content-between">
-                  <h3 class="card-title">Network Graph</h3>
-                  <a href="javascript:void(0);">View Report</a>
+                  <h3 class="card-title">Text Network Analysis</h3>
+				  <div class="card-tools">
+					  <button type="button" class="btn btn-tool" data-card-widget="maximize" onclick="toggleNetworkChart();"><i class="fas fa-expand"></i>
+					  </button>
+					</div>
                 </div>
               </div>
               <div class="card-body">
-                <div class="d-flex">
-                  <p class="d-flex flex-column">
-                    <span class="text-bold text-lg">820</span>
-                    <span>Visitors Over Time</span>
-                  </p>
-                  <p class="ml-auto d-flex flex-column text-right">
-                    <span class="text-success">
-                      <i class="fas fa-arrow-up"></i> 12.5%
-                    </span>
-                    <span class="text-muted">Since last week</span>
-                  </p>
-                </div>
-                <!-- /.d-flex -->
 
                 <div class="position-relative mb-4">
 				  <div id="containerGraph"></div>
                 </div>
-
                 <div class="d-flex flex-row justify-content-end">
                   <span class="mr-2">
-                    <i class="fas fa-square text-primary"></i> This Week
-                  </span>
-
-                  <span>
-                    <i class="fas fa-square text-gray"></i> Last Week
+                    * Min Weight {{text_network_object["min_weight"] if text_network_object != None else '0'}}
                   </span>
                 </div>
               </div>
             </div>
             <!-- /.card -->
-          </div>
-          <!-- /.col-md-6 -->
-          <div class="col-lg-5">
-            <div class="card">
+			<div class="card">
               <div class="card-header border-0">
                 <div class="d-flex justify-content-between">
-                  <h3 class="card-title">Sales</h3>
-                  <a href="javascript:void(0);">View Report</a>
+                  <h3 class="card-title">Raw Text</h3>
                 </div>
               </div>
               <div class="card-body">
-                <div class="d-flex">
-                  <p class="d-flex flex-column">
-                    <span class="text-bold text-lg">$18,230.00</span>
-                    <span>Sales Over Time</span>
-                  </p>
-                  <p class="ml-auto d-flex flex-column text-right">
-                    <span class="text-success">
-                      <i class="fas fa-arrow-up"></i> 33.1%
-                    </span>
-                    <span class="text-muted">Since last month</span>
-                  </p>
+
+                <div class="position-relative mb-4">
+				  <textarea class="form-control" style="height:150px">{{text_raw}}</textarea>
                 </div>
+              </div>
+            </div>
+            
+          </div>
+          <!-- /.col-md-6 -->
+          <div class="col-lg-4">  
+			<div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">Text Clustering</h3>
+              </div>
+              <div class="card-body">
+                <div>
+					<form method="POST" action="/find" class="form-group">
+						<div class="form-group">
+						  <div class="custom-file">
+							<input type="text" name="text_search" class="form-control">
+						  </div>
+						</div>
+					</form>
+                </div>
+              </div>
+			  <div class="card-footer">
+                  <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+          
+            <div class="card">
+              <div class="card-header border-0">
+                <div class="d-flex justify-content-between">
+                  <h3 class="card-title">Benford Analysis</h3>
+                </div>
+              </div>
+              <div class="card-body">
                 <!-- /.d-flex -->
+
+                <div class="d-flex flex-row justify-content-end">
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> Kas
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> Aset
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> Pembelian
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> Penjualan
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> Utang
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> Piutang
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> Laba
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> Rugi
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-primary">
+                    <i class="fas fa-square text-gray"></i> COGS
+                  </a>
+                </div>
 
                 <div class="position-relative mb-4">
 				  <div id="containerBenford"></div>
                 </div>
-
-                <div class="d-flex flex-row justify-content-end">
-                  <span class="mr-2">
-                    <i class="fas fa-square text-primary"></i> This year
-                  </span>
-
-                  <span>
-                    <i class="fas fa-square text-gray"></i> Last year
-                  </span>
-                </div>
               </div>
             </div>
             <!-- /.card -->
 
-            <div class="card">
-              <div class="card-header border-0">
-                <h3 class="card-title">Online Store Overview</h3>
-                <div class="card-tools">
-                  <a href="#" class="btn btn-sm btn-tool">
-                    <i class="fas fa-download"></i>
-                  </a>
-                  <a href="#" class="btn btn-sm btn-tool">
-                    <i class="fas fa-bars"></i>
-                  </a>
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center border-bottom mb-3">
-                  <p class="text-success text-xl">
-                    <i class="ion ion-ios-refresh-empty"></i>
-                  </p>
-                  <p class="d-flex flex-column text-right">
-                    <span class="font-weight-bold">
-                      <i class="ion ion-android-arrow-up text-success"></i> 12%
-                    </span>
-                    <span class="text-muted">CONVERSION RATE</span>
-                  </p>
-                </div>
-                <!-- /.d-flex -->
-                <div class="d-flex justify-content-between align-items-center border-bottom mb-3">
-                  <p class="text-warning text-xl">
-                    <i class="ion ion-ios-cart-outline"></i>
-                  </p>
-                  <p class="d-flex flex-column text-right">
-                    <span class="font-weight-bold">
-                      <i class="ion ion-android-arrow-up text-warning"></i> 0.8%
-                    </span>
-                    <span class="text-muted">SALES RATE</span>
-                  </p>
-                </div>
-                <!-- /.d-flex -->
-                <div class="d-flex justify-content-between align-items-center mb-0">
-                  <p class="text-danger text-xl">
-                    <i class="ion ion-ios-people-outline"></i>
-                  </p>
-                  <p class="d-flex flex-column text-right">
-                    <span class="font-weight-bold">
-                      <i class="ion ion-android-arrow-down text-danger"></i> 1%
-                    </span>
-                    <span class="text-muted">REGISTRATION RATE</span>
-                  </p>
-                </div>
-                <!-- /.d-flex -->
-              </div>
-            </div>
           </div>
           <!-- /.col-md-6 -->
         </div>
@@ -206,41 +234,27 @@
 <script src="/static/assets/js/highcharts.js" charset="utf-8"></script>
 <script src="/static/assets/js/networkgraph.js" charset="utf-8"></script>
 <script>
-var dirDist50 = "#E8544E",
-  dirDist10 = "#FFD265",
-  dirDistLess10 = "#2AA775";
-
-Highcharts.chart('containerGraph', {
+var minimizeNetworkChart = true;
+function toggleNetworkChart(){
+	if(minimizeNetworkChart){
+		networkChart.setSize(1280,800);
+		minimizeNetworkChart = false;
+	}else{
+		networkChart.setSize(0,400);
+		minimizeNetworkChart = true;
+	}
+}
+networkChart = Highcharts.chart('containerGraph', {
 
   chart: {
     type: 'networkgraph',
-    marginTop: 80
+    marginTop: 0,
+	height: null
   },
 
   title: {
-    text: 'South Korea domestic flight routes'
+    text: ''
   },
-
-tooltip:{
-  formatter:function(){
-    var info="";
-    switch(this.color){
-        case dirDist50: 
-        console.log(dirDist50);
-        info="is an aiport <b>more than 50</b> direct distinations"
-        break;
-        case dirDist10: 
-        console.log(dirDist10);;
-        info="is an aiport <b>more than 10</b> direct distinations"
-        break;
-        case dirDistLess10: 
-        console.log(dirDistLess10);;
-        info="is an aiport <b>less than 10</b> direct distinations"
-        break;
-    }
-    return "<b>"+this.key + "</b>: "+info;
-  }
-},
 
 
   plotOptions: {
@@ -265,149 +279,54 @@ tooltip:{
                     textOutline: false 
                 }
     },
-    data: [
-      ['Seoul ICN', 'Daegu'],
-      ['Seoul ICN', 'Busan'],
-      ['Busan', 'Seoul GMP'],
-      ['Busan', 'Yangyang'],
-      
-      
-      
-      ['Daegu', 'Seoul GMP'],
-      ['Daegu', 'Jeju'],
-      
-      ['Seoul GMP', 'Gwangju'],
-      ['Seoul GMP', 'Yeosu'],
-      ['Seoul GMP', 'Sacheon'],
-      ['Seoul GMP', 'Ulsan'],
-      ['Seoul GMP', 'Pohang'],
-      
-      ['Jeju', 'Gwangju'],
-      ['Jeju', 'Gunsan'],
-      ['Jeju', 'Wonju'],
-      ['Jeju', 'Yangyang'],
-      ['Jeju', 'Daegu'],
-      ['Jeju', 'Yeosu'],
-      ['Jeju', 'Sacheon'],
-      ['Jeju', 'Ulsan'],
-      ['Jeju', 'Busan'],
-      ['Jeju', 'Cheongju'],
-    ],
-    nodes: [{
-        id: 'Seoul ICN',
-        marker: {
-          radius: 30,
-        },
-        color: dirDist50
-      }, {
-        id: 'Daegu',
-        marker: {
-          radius: 10,
-        },
-        color: dirDistLess10
-      }, {
-        id: 'Busan',
-        marker: {
-          radius: 30},
-        color: dirDist50
-      }, {
-        id: 'Seoul GMP',
-        marker: {
-          radius: 20,
-        },
-        color: dirDist10
-      },
-      {
-        id: 'Jeju',
-        marker: {
-          radius: 30,
-        },
-        color: dirDist50
-      },{
-        id: 'Gwangju',
-        marker: {
-          radius: 10,
-        },
-        color: dirDistLess10
-      }, {
-        id: 'Yeosu',
-        marker: {
-          radius: 10,
-        },
-        color: dirDistLess10
-      }, {
-        id: 'Sacheon',
-        marker: {
-          radius: 10,
-        },
-        color: dirDistLess10
-      }, {
-        id: 'Ulsan',
-        marker: {
-          radius: 10,
-        },
-        color: dirDistLess10
-      }, {
-        id: 'Pohang',
-        marker: {
-          radius: 20,
-        },
-        color: dirDist10
-      }, {
-        id: 'Gunsan',
-        marker: {
-          radius: 10,
-        },
-        color: dirDistLess10
-      }, {
-        id: 'Wonju',
-        marker: {
-          radius: 10,
-        },
-        color: dirDistLess10
-      }, {
-        id: 'Yangyang',
-        marker: {
-          radius: 10,
-        },
-        color: dirDistLess10
-      }, {
-        id: 'Cheongju',
-        marker: {
-          radius: 20,
-        },
-        color: dirDist10
-      },]
-  }]
+    data:
+		{{text_network_object["data"] | safe}},
+    nodes:
+		{{text_network_object["node"] | safe}}
+  }],
+  responsive: {
+        rules: [{
+            condition: {
+                maxHeight: 800
+            },
+            chartOptions: {
+                legend: {
+                    align: 'center',
+                    verticalAlign: 'bottom',
+                    layout: 'horizontal'
+                },
+                yAxis: {
+                    labels: {
+                        align: 'left',
+                        x: 0,
+                        y: -5
+                    },
+                    title: {
+                        text: null
+                    }
+                },
+                subtitle: {
+                    text: null
+                },
+                credits: {
+                    enabled: false
+                }
+            }
+        }]
+    }
 });
 </script>
 <script>
 Highcharts.chart('containerBenford', {
 
   title: {
-    text: 'Solar Employment Growth by Sector, 2010-2016'
-  },
-
-  subtitle: {
-    text: 'Source: thesolarfoundation.com'
-  },
-
-  yAxis: {
-    title: {
-      text: 'Number of Employees'
-    }
-  },
-
-  xAxis: {
-    accessibility: {
-      rangeDescription: 'Range: 2010 to 2017'
-    }
+    text: ''
   },
 
   legend: {
-    layout: 'vertical',
-    align: 'right',
-    verticalAlign: 'middle'
+    layout: 'horizontal',
+    align: 'center',
+    verticalAlign: 'bottom'
   },
 
   plotOptions: {
@@ -415,16 +334,19 @@ Highcharts.chart('containerBenford', {
       label: {
         connectorAllowed: false
       },
-      pointStart: 2010
+      pointStart: 1
     }
   },
 
   series: [{
-    name: 'Installation',
-    data: [43934, 52503, 57177, 69658, 97031, 119931, 137133, 154175]
+    name: 'Current Document',
+    data: [33, 24, 20, 17, 14, 10, 8, 5, 1]
   },{
-    name: 'Other',
-    data: [12908, 5948, 8105, 11248, 8989, 11816, 18274, 18111]
+    name: 'Population',
+    data: [34, 23, 22, 15, 12, 9, 7, 4, 1]
+  },{
+    name: 'Benford Number',
+    data: [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
   }],
 
   responsive: {
