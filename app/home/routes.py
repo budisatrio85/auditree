@@ -25,16 +25,23 @@ def index():
 @login_required
 def index_filename(filename):
     files = os.listdir(current_app.config['UPLOAD_PATH'])
+    text_raw = ""
+    text_network_object = ""
+    content_raw = []
     conn = sqlite3.connect(os.path.join(current_app.config['DB_PATH'], 'auditree.db'), timeout=10)
     c = conn.cursor()
     c.execute("SELECT text_raw,text_network_object FROM corpus where filename = ?", [filename])
     data=c.fetchall()
     if len(data)!=0:
-        text_raw = data[0][0]
-        text_network_object = json.loads(data[0][1])
+        if list(data[0])[0] is not None:
+            text_raw = json.loads(data[0][0])
+            for i,item in enumerate(text_raw["index"]):
+                content_raw.append({"index":item,"page":text_raw["data"][i][0],"content":text_raw["data"][i][1]})
+        if list(data[0])[1] is not None:
+            text_network_object = json.loads(data[0][1])
     conn.commit()
     conn.close()
-    return render_template('index.html', files=files, text_raw=text_raw,text_network_object=text_network_object)
+    return render_template('index.html', files=files, text_raw=content_raw,text_network_object=text_network_object)
 
 @blueprint.route('/<template>')
 @login_required
