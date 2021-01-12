@@ -1,0 +1,11 @@
+id;report
+0; PENDAPATAN NEGARA DAN HIBAH Penerimaan Perpajakan PNBP penerimaan negara bukan pajak Hibah JUMLAH PENDAPATAN DAN HIBAH jumlah pendapatan jumlah pendapatan negara
+1; BELANJA NEGARA Belanja Pegawai Belanja Barang Belanja Modal JUMLAH BELANJA JUMLAH BELANJA negara
+2;Aset Aset Lancar Investasi Jangka Panjang Aset Tetap Piutang Jangka Panjang Aset Lainnya Jumlah Aset Jumlah Aset negara
+3;Kewajiban Kewajiban Jangka Pendek Kewajiban Jangka Panjang Jumlah Kewajiban Jumlah Kewajiban negara
+4;Ekuitas Jumlah Ekuitas Jumlah Kewajiban dan Ekuitas
+5;KEGIATAN OPERASIONAL Pendapatan Operasional Pendapatan Perpajakan PNBP operasional Beban Operasional SURPLUS (DEFISIT) DARI KEGIATAN OPERASIONA jumlah kegiatan operasional
+6; KEGIATAN NON OPERASIONAL jumlah kegiatan non operasional Surplus (Defisit) Pelepasan Aset Non Lancar Surplus (Defisit) Penyelesaian Kewajiban Jangka Panjang Surplus (Defisit) dari Kegiatan Non Operasional Lainnya SURPLUS (DEFISIT) DARI KEGIATAN NON OPERASIONAL jumlah SURPLUS (DEFISIT) DARI KEGIATAN NON OPERASIONAL
+7; POS LUAR BIASA
+8; SURPLUS (DEFISIT) LO Ekuitas
+9; EKUITAS AWAL jumlah ekuitas awal Dampak Kumulatif Perubahan Kebijakan Akuntansi Koreksi yang Menambah/Mengurangi Ekuitas Transaksi Antar Entitas Kenaikan/Penurunan Ekuitas EKUITAS AKHIR

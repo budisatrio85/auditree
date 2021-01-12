@@ -1,0 +1,11 @@
+id;report
+0; pendapatan
+1; belanja
+2;aset
+3;kewajiban
+4;ekuitas
+5;operasional
+6;non-operasional
+7;pos-luarbiasa
+8;lo-ekuitas
+9;transaksi-ekuitas
