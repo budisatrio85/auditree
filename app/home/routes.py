@@ -19,7 +19,8 @@ def index():
     files = os.listdir(current_app.config['UPLOAD_PATH'])
     text_raw = ""
     text_network_object = ""
-    return render_template('index.html', files=files, text_raw=text_raw, text_network_object=text_network_object)
+    filename = ""
+    return render_template('index.html', files=files, text_raw=text_raw, text_network_object=text_network_object, filename=filename)
     
 @blueprint.route('/index/<filename>')
 @login_required
@@ -36,12 +37,12 @@ def index_filename(filename):
         if list(data[0])[0] is not None:
             text_raw = json.loads(data[0][0])
             for i,item in enumerate(text_raw["index"]):
-                content_raw.append({"index":item,"page":text_raw["data"][i][0],"content":text_raw["data"][i][1]})
+                content_raw.append({"index":item,"id":text_raw["data"][i][0],"page":text_raw["data"][i][1],"content":text_raw["data"][i][2]})
         if list(data[0])[1] is not None:
             text_network_object = json.loads(data[0][1])
     conn.commit()
     conn.close()
-    return render_template('index.html', files=files, text_raw=content_raw,text_network_object=text_network_object)
+    return render_template('index.html', files=files, text_raw=content_raw,text_network_object=text_network_object, filename=filename)
 
 @blueprint.route('/<template>')
 @login_required

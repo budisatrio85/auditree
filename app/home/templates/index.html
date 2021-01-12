@@ -131,7 +131,6 @@
                 <table id="data_raw" class="table table-bordered table-striped">
                   <thead>
                   <tr>
-                    <th>Index</th>
                     <th>Page</th>
                     <th>Content</th>
                   </tr>
@@ -147,21 +146,22 @@
           <div class="col-lg-4">  
 			<div class="card">
               <div class="card-header border-0">
-                <h3 class="card-title">Text Clustering</h3>
+                <h3 class="card-title">Context Searching</h3>
               </div>
               <div class="card-body">
                 <div>
 					<form method="POST" action="/find" class="form-group">
 						<div class="form-group">
 						  <div class="custom-file">
-							<input type="text" name="text_search" class="form-control">
+							<input type="text" id="text_search" name="text_search" class="form-control">
 						  </div>
 						</div>
 					</form>
                 </div>
               </div>
 			  <div class="card-footer">
-                  <button type="submit" class="btn btn-primary">Search</button>
+                  <button type="button" class="btn btn-success" onclick="ajaxSearch();">Search</button>
+                  <button type="button" class="btn btn-primary" onclick="resetContentRaw();">Reset</button>
                 </div>
             </div>
           
@@ -176,7 +176,11 @@
 				<div class="d-flex flex-row justify-content-end">
                 <div>
                   <a href="" class="btn btn-xs btn-success">
-                    Kas
+                    Pendapatan
+                  </a>
+
+                  <a href="" class="btn btn-xs btn-success">
+                    Belanja
                   </a>
 
                   <a href="" class="btn btn-xs btn-success">
@@ -184,31 +188,31 @@
                   </a>
 
                   <a href="" class="btn btn-xs btn-success">
-                    Pembelian
+                    Kewajiban
                   </a>
 
                   <a href="" class="btn btn-xs btn-success">
-                    Penjualan
+                    Ekuitas
                   </a>
 
                   <a href="" class="btn btn-xs btn-success">
-                    Utang
+                    Operasional
                   </a>
 
                   <a href="" class="btn btn-xs btn-success">
-                    Piutang
+                    Non-Operasional
                   </a>
 
                   <a href="" class="btn btn-xs btn-success">
-                    Laba
+                    Pos Luar Biasa
                   </a>
 
                   <a href="" class="btn btn-xs btn-success">
-                    Rugi
+                    LO-Ekuitas
                   </a>
 
                   <a href="" class="btn btn-xs btn-success">
-                    COGS
+                    Transaksi-Ekuitas
                   </a>
                 </div>
 
@@ -387,21 +391,48 @@ Highcharts.chart('containerBenford', {
 });
 </script>
 <script>
-	var dataRaw = {{text_raw | safe}}
 	{% if text_raw|length > 0 %}
-    $(function () {
-      $('#data_raw').DataTable({
+	var dataRaw = {{text_raw | safe}}
+    var dataTable = $('#data_raw').DataTable({
         "data" : dataRaw,
 		"columns" : [
-            { "data" : 'index' },
             { "data" : 'page' },
             { "data" : 'content' }
         ],
         "responsive": true,
         "autoWidth": false,
       });
-    });
 	{% endif %}
-  </script>
+	function resetContentRaw(){
+	{% if text_raw|length > 0 %}
+		dataTable.clear().draw();
+	    dataTable.rows.add(dataRaw); // Add new data
+	    dataTable.columns.adjust().draw(); // Redraw the DataTable
+	{% endif %}
+	}
+</script>
+<script>
+function ajaxSearch(){
+	$("#loader").show()
+	var query = $("#text_search").val();
+	var filename = "{{filename}}";
+	var url_req = "/ajax_search/"+filename+"/"+query;
+	$.ajax({
+	  type : 'GET',
+	  url : url_req,
+	  success: function(dataRaw) {
+			$("#loader").hide();
+			dataRaw = dataRaw.replace(/'/g,'"');
+			dataTable.clear().draw();
+			dataTable.rows.add(JSON.parse(dataRaw)); // Add new data
+			dataTable.columns.adjust().draw(); // Redraw the DataTable
+		},
+		error: function() {
+			$("#loader").hide();
+			alert('Error occured');
+		}
+	});
+}
+</script>
 
 {% endblock javascripts %}

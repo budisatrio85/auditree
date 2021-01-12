@@ -54,14 +54,9 @@ def extract_paragraph(page_no, text):
     temp_arr = []
     df_data = []
     for x in paragraph:
-        print("PAR")
-        print(x)
         if isinstance(x, str) and len(x) > 64:
             temp_arr = [page_no, x]
-            print("ARR")
-            print(temp_arr)
             df_data.append(temp_arr)
-        input()
         
     df =pd.DataFrame(df_data, columns=['Page', 'Content'])
     df['Content'] = df['Content'].astype('string')

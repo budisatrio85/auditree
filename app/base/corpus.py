@@ -6,7 +6,7 @@ import json
 import random
 from networkx.readwrite import json_graph
 from flask import jsonify
-from flask import redirect, current_app, url_for, session
+from flask import redirect, current_app, url_for, session, Response
 from werkzeug.utils import secure_filename
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
@@ -23,7 +23,18 @@ from pdfminer.pdfpage import PDFTextExtractionNotAllowed
 import pandas as pd
 import re
 from nltk.tokenize import sent_tokenize
+from transformers import AutoTokenizer, AutoModel
+import numpy as np
+import torch
+from scipy import spatial
+import faiss
+import pickle
+from pathlib import Path
+
+CHARACTER_THRESHOLD = 350
+N_RECOMMENDED = 3
 pd.set_option('display.max_colwidth', None)
+
 class Corpus():
     def rescale(values, new_min = 0, new_max = 10):
         output = []
@@ -122,26 +133,33 @@ class Corpus():
         temp_arr = []
         df_data = []
         for x in paragraph:
-            if isinstance(x, str) and len(x) > 64:
-                temp_arr = [page_no, x]
-                df_data.append(temp_arr)
+            if isinstance(x, str) and len(x) > CHARACTER_THRESHOLD:
+                if re.search("\.{5,}", x):
+                    continue
+                else:
+                    temp_arr = [random.randint(100, 10000), page_no, x]
+                    df_data.append(temp_arr)
             
-        df = pd.DataFrame(df_data, columns=['Page', 'Content'])
+        df =pd.DataFrame(df_data, columns=['id', 'Page', 'Content'])
         df['Content'] = df['Content'].astype('string')
+
         return df
 
     def extract_sentences(page_no, text):
-        print ("this's for extracting sentences")
         sentence = sent_tokenize(text)
         temp_arr = []
         df_data = []
         for x in sentence:
-            if isinstance(x, str) and len(x) > 64:
-                temp_arr = [page_no, x]
-                df_data.append(temp_arr)
+            if isinstance(x, str) and len(x) > CHARACTER_THRESHOLD:
+                if re.search("\.{5,}", x):
+                    continue
+                else:
+                    temp_arr = [random.randint(100, 10000), page_no, x]
+                    df_data.append(temp_arr)
             
-        df = pd.DataFrame(df_data, columns=['Page', 'Content'])
+        df =pd.DataFrame(df_data, columns=['id', 'Page', 'Content'])
         df['Content'] = df['Content'].astype('string')
+
         return df
 
     def get_text_from_pdf(file_path, format_result='paragraph'):
@@ -159,6 +177,79 @@ class Corpus():
         data_df = pd.concat(df_frames)
         json_data = data_df.to_json(orient="split")
         return json_data
+
+    def id2details(df, I, column):
+        return [list(df[df.id == idx][column]) for idx in I[0]]
+
+    def id2details_df(df, I):
+        mask = df['id'].isin(I[0])
+        return df.loc[mask]
+
+    def vector_search_indo(query, model, tokenizer, index, num_results=5):
+        query=tokenizer.encode(query,truncation=True,max_length=512, add_special_tokens=True)
+        tokens = [query]
+        max_len = 0
+        for i in tokens:
+            if len(i) > max_len:
+                max_len = len(i)
+
+        padded = np.array([i + [0]*(max_len-len(i)) for i in tokens])
+
+        attention_mask = np.where(padded != 0, 1, 0)
+
+        input_ids = torch.tensor(padded)
+        attention_mask = torch.tensor(attention_mask)
+
+        with torch.no_grad():
+            last_hidden_states = model(input_ids, attention_mask=attention_mask)
+
+        features = last_hidden_states[0][:,0,:].numpy()
+        D, I = index.search(np.array(features).astype("float32"), k=num_results)
+        return D, I
+
+    def load_indobert_model():
+        tokenizer = AutoTokenizer.from_pretrained("indolem/indobert-base-uncased")
+        model = AutoModel.from_pretrained("indolem/indobert-base-uncased")
+        return model, tokenizer
+
+    def load_faiss_index(path_to_faiss="faiss_index.pickle"):
+        """Load and deserialize the Faiss index."""
+        with open(path_to_faiss, "rb") as h:
+            data = pickle.load(h)
+        return faiss.deserialize_index(data)
+
+    def search_paragraph(query,path_file):
+        result = ""
+        filename = secure_filename(path_file)
+        if filename != '':
+            conn = sqlite3.connect(os.path.join(current_app.config['DB_PATH'], 'auditree.db'), timeout=10)
+            c = conn.cursor()
+            c.execute("SELECT text_raw FROM corpus WHERE filename = ?", [filename])
+            data=c.fetchall()
+            if len(data)!=0:
+                file_path = os.path.join(current_app.config['UPLOAD_PATH'], filename)
+                content_raw = list(data[0])[0]
+                if content_raw is not None:
+                    data = pd.read_json(content_raw,orient="split")
+                    model, tokenizer = Corpus.load_indobert_model()
+                    PATH_TO_FAISS_PICKLE = os.path.join(current_app.config['PICKLE_PATH'], filename+".pickle")
+                    faiss_index = Corpus.load_faiss_index(PATH_TO_FAISS_PICKLE)
+
+                    D, I = Corpus.vector_search_indo(query, model, tokenizer, faiss_index, N_RECOMMENDED)
+
+                    #print(f'L2 distance: {D.flatten().tolist()}\n\nMAG paper IDs: {I.flatten().tolist()}')
+                    # res = id2details(data, I, 'Content')
+                    res = Corpus.id2details_df(data, I)
+                    result_json = res.to_json(orient="split")
+                    result = json.loads(result_json)
+                    result_raw = []
+                    for i,item in enumerate(result["index"]):
+                        result_raw.append({"index":item,"id":result["data"][i][0],"page":result["data"][i][1],"content":result["data"][i][2]})
+                    result = str(result_raw)
+            conn.commit()
+            conn.close()
+        return result
+        #return Response(result, mimetype='application/json')
         
     def process(path_file):
         text = ""

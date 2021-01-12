@@ -119,6 +119,10 @@ def delete(filename):
 @blueprint.route('/process/<filename>')
 def process(filename):
     return Corpus.process(filename)
+    
+@blueprint.route('/ajax_search/<filename>/<query>')
+def ajax_search(query,filename):
+    return Corpus.search_paragraph(query,filename)
 
 ## Errors
 
