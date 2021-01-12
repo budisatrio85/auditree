@@ -11,6 +11,8 @@ from victorinox import victorinox
 from glob import glob
 import os
 import re
+import sys
+from fastapi.middleware.cors import CORSMiddleware
 
 tool=victorinox()
 population1_dict={}
@@ -68,6 +70,19 @@ class Benford_Item(BaseModel):
 
 
 app = FastAPI()
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:5000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.get("/get_report_list")
 async def get_report_list(request: Request):#,
                  #pdf: bytes = File(...)):
@@ -90,10 +105,12 @@ async def population_benford(request: Request):#,
         'status': 'error',
         "val": {}
     }
+    print("MASUK")
     result = Benford_Item(**init_result)
     if request.method == "POST":
         try:
             form = await request.form()
+            print(form)
             id=form["id"]
             digits = int(form["digits"])
             if digits==1:
@@ -119,6 +136,8 @@ async def population_benford(request: Request):#,
                     result.val="id not found"
             # stream = io.BytesIO(pdf)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             result.status="error"
             result.val=str(e)
     json_compatible_item_data = jsonable_encoder(result)

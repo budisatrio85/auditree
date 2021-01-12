@@ -30,6 +30,7 @@ from scipy import spatial
 import faiss
 import pickle
 from pathlib import Path
+import benford as bf
 
 CHARACTER_THRESHOLD = 350
 N_RECOMMENDED = 3
@@ -257,7 +258,7 @@ class Corpus():
         if filename != '':
             conn = sqlite3.connect(os.path.join(current_app.config['DB_PATH'], 'auditree.db'), timeout=10)
             c = conn.cursor()
-            c.execute("SELECT text_raw,text_network_object FROM corpus WHERE filename = ?", [filename])
+            c.execute("SELECT text_raw,text_network_object,benford_object FROM corpus WHERE filename = ?", [filename])
             data=c.fetchall()
             if len(data)!=0:
                 file_path = os.path.join(current_app.config['UPLOAD_PATH'], filename)
@@ -297,6 +298,26 @@ class Corpus():
                     # process graph
                     graph = Corpus.process_graph(text)
                     c.execute("UPDATE corpus SET text_network_object = ? WHERE filename = ?",[json.dumps(graph),filename])
+                    
+                if list(data[0])[2] is None:
+                    p=re.compile(r"^(19|20)\d{2}$")
+                    res=[]
+                    reader = PyPDF2.PdfFileReader(file_path)
+                    for page in reader.pages:  
+                        arr = re.findall(r"[\d.]*\d+", page.extractText())
+                        for a in arr:
+                            a=str(a)
+                            if p.findall(a):
+                                continue
+                            a=a.replace(".","")
+                            if len(a)>17:
+                                a=a[:16]
+                            res.append(a)
+                    df = pd.DataFrame(list(res),columns=['nilai']) 
+                    fld=bf.first_digits(data=df['nilai'].astype(np.float),digs=1,decimals=8,confidence=95)
+                    result_json = fld.to_json(orient="split")
+                    result = json.loads(result_json)
+                    c.execute("UPDATE corpus SET benford_object = ? WHERE filename = ?",[result_json,filename])
             conn.commit()
             conn.close()
         return redirect(url_for('home_blueprint.index_filename',filename=filename))
