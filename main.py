@@ -32,6 +32,7 @@ individu2_dict={}
 individu_root_path=r"corpus/individu"
 individu_files=glob(os.path.join(individu_root_path, "**/*.txt"),recursive=True)
 
+report_list=[]
 pp=re.compile("\d+")
 for f in individu_files:
     try:
@@ -39,6 +40,7 @@ for f in individu_files:
         company=str(folder).split("/")[-1]
         year=pp.findall(fn)[0]
         id=company+"_"+year
+        report_list.append(id)
         (points,violations)=tool.extract_benford(currency_path=f,
                              digs=1)
         individu1_dict[id]=(points,violations)
@@ -49,25 +51,14 @@ for f in individu_files:
         print("Error file {}:{}".format(f,str(e)))
         continue
 
-class Violation(BaseModel):
-    first_digits: list
-    expected: list
-    found: list
-    z_score: list
-
-
-
-class Points(BaseModel):
-    first_digits: list
-    counts:list
-    found:list
-    expected:list
-
-
 class BenfordModel(BaseModel):
     status: str
     points: dict
     violations: dict
+
+class ListModel(BaseModel):
+    status: str
+    report:list
 
 
 # m = FooBarModel(banana=3.14, foo='hello', bar={'whatever': 123})
@@ -77,6 +68,20 @@ class Benford_Item(BaseModel):
 
 
 app = FastAPI()
+@app.get("/get_report_list")
+async def get_report_list(request: Request):#,
+                 #pdf: bytes = File(...)):
+
+    init_result = {
+        'status': 'ok',
+        "report": []
+    }
+    result = ListModel(**init_result)
+    result.status="ok"
+    result.report=report_list
+    json_compatible_item_data = jsonable_encoder(result)
+    return JSONResponse(content=json_compatible_item_data)
+
 @app.post("/population_benford")
 async def population_benford(request: Request):#,
                  #pdf: bytes = File(...)):
