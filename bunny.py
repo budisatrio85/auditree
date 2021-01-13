@@ -249,5 +249,163 @@
 # print(y.head())
 
 
-x="/a/b/c"
-print(x.split("/")[-1])
+from nltk.tag import CRFTagger
+import string
+import nltk
+nltk.download("punkt")
+from nltk.tokenize import RegexpTokenizer
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+from nltk.stem import PorterStemmer
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory,StopWordRemover,ArrayDictionary
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+import os
+import pandas as pd
+import re
+import PyPDF2
+from collections import Counter
+import math
+import random
+
+
+
+
+
+pd.set_option('display.max_colwidth', None)
+SAVED_FILES = 'indobert_files'
+BASE_PATH = "financeReport"
+CHARACTER_THRESHOLD = 350
+FILE_PATH = os.path.join(BASE_PATH + "/" + "laporan-keuangan-2018.pdf")
+ct = CRFTagger()
+ct.set_model_file('all_indo_man_tag_corpus_model.crf.tagger')
+
+
+tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
+factory = StemmerFactory()
+stemmer = factory.create_stemmer()
+default_stopwords = StopWordRemoverFactory().get_stop_words()
+additional_stopwords=["(",")","senin","selasa","rabu","kamis","jumat","sabtu","minggu"]
+dictionary=ArrayDictionary(default_stopwords+additional_stopwords)
+id_stopword = StopWordRemover(dictionary)
+en_stopword = set(stopwords.words('english'))
+en_stemmer = PorterStemmer()
+
+def remove_numbers(text):
+  words=tokenizer.tokenize(text)
+  return " ".join(words)
+
+def remove_punctuation(text):
+  words = text.split()
+  table = str.maketrans('', '', string.punctuation)
+  stripped = [w.translate(table) for w in words]
+  return " ".join(stripped)
+
+def stem_text(text):
+  return stemmer.stem(text)
+
+def remove_stopwords(text):
+  return id_stopword.remove(text)
+
+def remove_english_stopwords(text):
+  if text:
+    return " ".join([token for token in text.split() if token not in en_stopword])
+
+def stem_english_text(text):
+  return " ".join([en_stemmer.stem(word) for word in text.split()])
+
+def remove_single_char(text):
+  return " ".join([ x for x in text.split() if len(x)>1])
+
+sentences="Catatan atas Laporan Keuangan (CaLK) menyajikan informasi tentang penjelasan atau daftar terinci atau analisis atas nilai " \
+         "suatu pos yang disajikan dalam Laporan " \
+         "Realisasi Anggaran, Neraca, Laporan Operasional, dan Laporan Perubahan Ekuitas. Termasuk pula dalam CaLK " \
+         "adalah penyajian informasi yang diharuskan dan dianjurkan oleh Standar Akuntansi " \
+         "Pemerintahan serta pengungkapan-pengungkapan lainnya yang diperlukan untuk penyajian " \
+         "yang wajar atas laporan keuangan. Dalam penyajian Laporan Realisasi Anggaran untuk periode yang berakhir sampai dengan tanggal 31 Desember 2018 " \
+          " disusun dan disajikan berdasarkan basis kas. Sedangkan Neraca, Laporan Operasional, dan Laporan Perubahan Ekuitas sampai dengan 31 Desember 2018 " \
+          "disusun dan disajikan dengan menggunakan basis akrual."
+
+fp=r"../auditree.local/corpus/source/kemenkeu/lk-2018.pdf"
+pdfFileObject = open(fp, 'rb')
+pdfReader = PyPDF2.PdfFileReader(pdfFileObject)
+count = pdfReader.numPages
+p = re.compile(r"^(19|20)\d{2}$")
+# with open(result,"w") as fo:
+total_nouns=[]
+data=[]
+for i in range(count):
+    page = pdfReader.getPage(i)
+    txt=page.extractText()
+    lines=str(txt).split("\n")
+    sentences=""
+    for line in lines:
+        arr = re.findall(r"[a-zA-Z]+", line)
+        sentences=sentences+" "+ " ".join([w for w in arr])
+    paragraph_nouns=[]
+    if sentences.strip():
+        for s in sentences.split("."):
+            try:
+                # s = remove_numbers(s)
+                # s = remove_punctuation(s)
+                # s = remove_stopwords(s)
+                # s = remove_english_stopwords(s)
+                s = remove_single_char(s)
+                # s = stem_text(s)
+                # s = stem_english_text(s)
+                hasil = ct.tag_sents([s.split()])
+                temp_noun=""
+                sentence_nouns=[]
+                prev_pos=""
+                for text, pos in hasil[0]:
+                    # print("{}:{}".format(text,pos))
+                    if (pos == "NN" or pos =="NNP") and (prev_pos == "NN" or prev_pos =="NNP") :
+                        if len(temp_noun.split())<2:
+                            temp_noun=temp_noun+" "+text
+                            temp_noun=str(temp_noun).lower()
+                    elif (pos != "NN" or pos !="NNP") and (prev_pos == "NN" or prev_pos =="NNP"):
+                        if temp_noun:
+                            temp_noun=remove_punctuation(temp_noun)
+                            total_nouns.append(temp_noun)
+                            sentence_nouns.append(temp_noun.strip())
+                            if len(sentence_nouns)==2:
+                                paragraph_nouns.append(sentence_nouns)
+                                data.append(sentence_nouns)
+                                sentence_nouns=[]
+                        temp_noun=""
+                    prev_pos=pos
+                    prev_text=text
+                if sentence_nouns:
+                    if len(sentence_nouns)==2:
+                        paragraph_nouns.append(sentence_nouns)
+            except Exception as e:
+                print("Eror: line {}".format(s))
+                continue
+    print(paragraph_nouns)
+c=Counter(total_nouns)
+total_words=len(total_nouns)
+node=[]
+T=30
+minor=[]
+for x in c:
+    key = x
+    value = c[key]
+    if value>T:
+        d={
+          "id": key,
+          "marker": {
+            "radius": math.ceil((value/total_words) * 1000)
+          },
+          "color": "#%06x" % random.randint(0, 0xFFFFFF)
+        }
+        node.append(d)
+    else:
+        minor.append(key)
+print(c)
+print(minor)
+ret={"data":[d for d in data if (d[0] not in minor) or (d[1] not in minor) ],
+     "node":node,
+     "min_weight": 19}
+print(ret)
+
+# a=open(r"tfidf_id.csv","r")
+# print(type(a))
