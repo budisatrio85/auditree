@@ -30,7 +30,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0 text-dark">Network Graph & Benford Analysis</h1>
+            <h1 class="m-0 text-dark">Text Network, Context Searching & Benford Analysis</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <div class="user-panel float-sm-right">
@@ -354,7 +354,7 @@ networkChart = Highcharts.chart('containerGraph', {
 });
 </script>
 <script>
-Highcharts.chart('containerBenfordCurrentDocument', {
+var containerBenfordPopulationChart = Highcharts.chart('containerBenfordPopulation', {
 
   title: {
     text: ''
@@ -405,17 +405,16 @@ Highcharts.chart('containerBenfordCurrentDocument', {
   }
 
 });
-var containerBenfordPopulationChart = Highcharts.chart('containerBenfordPopulation', {
+Highcharts.chart('containerBenfordCurrentDocument', {
 
   title: {
     text: ''
   },
-
-  yAxis: {
+  yAxis: [{
     title: {
       text: 'Occurence (in 100%)'
     }
-  },
+  }],
 
   legend: {
     layout: 'horizontal',
@@ -434,9 +433,11 @@ var containerBenfordPopulationChart = Highcharts.chart('containerBenfordPopulati
 
   series: [{
     name: 'Found',
+	yAxis: 0,
     data: {{found_arr | safe}}
   },{
     name: 'Expected',
+	yAxis: 0,
     data: {{expected_arr | safe}}
   }],
 
@@ -505,20 +506,21 @@ function ajaxSearch(){
 function getPopulation(num){
 	$("#loader").show()
 	var digits = $("#defaultDigits").html();
-	var url_req = "http://localhost:8000/population_benford" ;
+	var url_req = "/population_benford/"+num+"/"+digits ;
 	var data = "id="+num+"&digits"
 	$.ajax({
-	  type : 'POST',
+	  type : 'GET',
 	  url : url_req,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-	  data : {
-		"id":num.toString(),
-		"digits":digits.toString()
-	  },
+      //headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+	  //data : {
+	  //	"id":num.toString(),
+	  //	"digits":digits.toString()
+	  //	},
 	  success: function(dataRaw) {
 			$("#loader").hide();
-			var expected = Object.keys(dataRaw.points.expected).map((key) => [dataRaw.points.expected[key] * 100]);
-			var found = Object.keys(dataRaw.points.found).map((key) => [dataRaw.points.found[key] * 100]);
+			var result = JSON.parse(dataRaw)
+			var expected = Object.keys(result.points.expected).map((key) => [result.points.expected[key] * 100]);
+			var found = Object.keys(result.points.found).map((key) => [result.points.found[key] * 100]);
 			$('#containerBenfordPopulation').highcharts().redraw();
 			containerBenfordPopulationChart.series[1].setData(expected);
 			containerBenfordPopulationChart.series[0].setData(found);

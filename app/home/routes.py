@@ -22,8 +22,9 @@ def index():
     text_network_object = ""
     found_arr = ""
     expected_arr = ""
+    z_arr = ""
     filename = ""
-    return render_template('index.html', files=files, text_raw=text_raw, text_network_object=text_network_object, found_arr=found_arr, expected_arr=expected_arr, filename=filename)
+    return render_template('index.html', files=files, text_raw=text_raw, text_network_object=text_network_object, found_arr=found_arr, expected_arr=expected_arr, filename=filename, z_arr=z_arr)
     
 @blueprint.route('/index/<filename>')
 @login_required
@@ -49,13 +50,15 @@ def index_filename(filename):
             benford_object = json.loads(data[0][2])
             found_arr = []
             expected_arr = []
+            z_arr = []
             list_index = benford_object["index"]
             for i,item in enumerate(list_index):
                 found_arr.append(benford_object["data"][i][1]*100)
                 expected_arr.append(benford_object["data"][i][2]*100)
+                z_arr.append(benford_object["data"][i][2])
     conn.commit()
     conn.close()
-    return render_template('index.html', files=files, text_raw=content_raw,text_network_object=text_network_object, found_arr=sorted(found_arr,reverse=True), expected_arr=sorted(expected_arr,reverse=True), filename=filename)
+    return render_template('index.html', files=files, text_raw=content_raw,text_network_object=text_network_object, found_arr=sorted(found_arr,reverse=True), expected_arr=sorted(expected_arr,reverse=True), filename=filename, z_arr=z_arr)
 
 @blueprint.route('/<template>')
 @login_required
