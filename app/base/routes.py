@@ -19,6 +19,7 @@ from app.base.uploads import Upload
 from app.base.corpus import Corpus
 
 from app.base.util import verify_pass
+import requests
 
 @blueprint.route('/')
 def route_default():
@@ -123,6 +124,12 @@ def process(filename):
 @blueprint.route('/ajax_search/<filename>/<query>')
 def ajax_search(query,filename):
     return Corpus.search_paragraph(query,filename)
+    
+@blueprint.route('/population_benford/<id>/<digits>')
+def population_benford(id,digits):
+    pload = {'id':id,'digits':digits}
+    r = requests.post('http://localhost:8000/population_benford',data = pload)
+    return r.content
 
 ## Errors
 

@@ -32,9 +32,9 @@ app = create_app( app_config )
 Migrate(app, db)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['UPLOAD_PATH'] = "/home/pusintek/project/auditree/document"
-app.config['DB_PATH'] = "/home/pusintek/project/auditree"
-app.config['PICKLE_PATH'] = "/home/pusintek/project/auditree/pickle"
+app.config['UPLOAD_PATH'] = "/mnt/d/SOURCE/AudiTREE/document"
+app.config['DB_PATH'] = "/mnt/d/SOURCE/AudiTREE/"
+app.config['PICKLE_PATH'] = "/mnt/d/SOURCE/AudiTREE/pickle"
 
 conn = sqlite3.connect(os.path.join(app.config['DB_PATH'], 'auditree.db'))
 

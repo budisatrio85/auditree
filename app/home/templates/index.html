@@ -30,7 +30,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0 text-dark">Network Graph & Benford Analysis</h1>
+            <h1 class="m-0 text-dark">Text Network, Context Searching & Benford Analysis</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <div class="user-panel float-sm-right">
@@ -168,57 +168,69 @@
             <div class="card">
               <div class="card-header border-0">
                 <div class="d-flex justify-content-between">
-                  <h3 class="card-title">Benford Analysis</h3>
+                  <h3 class="card-title">Benford Analysis Current Document</h3>
+                </div>
+              </div>
+              <div class="card-body">
+				<div class="position-relative mb-4">
+				  <div id="containerBenfordCurrentDocument"></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header border-0">
+                <div class="d-flex justify-content-between">
+                  <h3 class="card-title">Benford Analysis Population</h3>
                 </div>
               </div>
               <div class="card-body">
                 <!-- /.d-flex -->
 				<div class="d-flex flex-row justify-content-end">
                 <div>
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(1)" class="btn btn-xs btn-success">
                     Pendapatan
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(2)" class="btn btn-xs btn-success">
                     Belanja
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(3)" class="btn btn-xs btn-success">
                     Aset
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(4)" class="btn btn-xs btn-success">
                     Kewajiban
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(5)" class="btn btn-xs btn-success">
                     Ekuitas
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(6)" class="btn btn-xs btn-success">
                     Operasional
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(7)" class="btn btn-xs btn-success">
                     Non-Operasional
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(8)" class="btn btn-xs btn-success">
                     Pos Luar Biasa
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(9)" class="btn btn-xs btn-success">
                     LO-Ekuitas
-                  </a>
+                  </button>
 
-                  <a href="" class="btn btn-xs btn-success">
+                  <button onclick="getPopulation(0)" class="btn btn-xs btn-success">
                     Transaksi-Ekuitas
-                  </a>
+                  </button>
                 </div>
 
                 </div>
                 <div class="position-relative mb-4">
-				  <div id="containerBenford"></div>
+				  <div id="containerBenfordPopulation"></div>
                 </div>
               </div>
             </div>
@@ -233,6 +245,7 @@
     </div>
     <!-- /.content -->
   </div>
+  <div id="defaultDigits">1</div>
   <!-- /.content-wrapper -->
 
 {% endblock content %}
@@ -341,10 +354,16 @@ networkChart = Highcharts.chart('containerGraph', {
 });
 </script>
 <script>
-Highcharts.chart('containerBenford', {
+var containerBenfordPopulationChart = Highcharts.chart('containerBenfordPopulation', {
 
   title: {
     text: ''
+  },
+
+  yAxis: {
+    title: {
+      text: 'Occurence (in 100%)'
+    }
   },
 
   legend: {
@@ -363,14 +382,63 @@ Highcharts.chart('containerBenford', {
   },
 
   series: [{
-    name: 'Current Document',
-    data: [33, 24, 20, 17, 14, 10, 8, 5, 1]
+    name: 'Found',
+    data: {{found_arr | safe}}
   },{
-    name: 'Population',
-    data: [34, 23, 22, 15, 12, 9, 7, 4, 1]
+    name: 'Expected',
+    data: {{expected_arr | safe}}
+  }],
+
+  responsive: {
+    rules: [{
+      condition: {
+        maxWidth: 500
+      },
+      chartOptions: {
+        legend: {
+          layout: 'horizontal',
+          align: 'center',
+          verticalAlign: 'bottom'
+        }
+      }
+    }]
+  }
+
+});
+Highcharts.chart('containerBenfordCurrentDocument', {
+
+  title: {
+    text: ''
+  },
+  yAxis: [{
+    title: {
+      text: 'Occurence (in 100%)'
+    }
+  }],
+
+  legend: {
+    layout: 'horizontal',
+    align: 'center',
+    verticalAlign: 'bottom'
+  },
+
+  plotOptions: {
+    series: {
+      label: {
+        connectorAllowed: false
+      },
+      pointStart: 1
+    }
+  },
+
+  series: [{
+    name: 'Found',
+	yAxis: 0,
+    data: {{found_arr | safe}}
   },{
-    name: 'Benford Number',
-    data: [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
+    name: 'Expected',
+	yAxis: 0,
+    data: {{expected_arr | safe}}
   }],
 
   responsive: {
@@ -426,6 +494,36 @@ function ajaxSearch(){
 			dataTable.clear().draw();
 			dataTable.rows.add(JSON.parse(dataRaw)); // Add new data
 			dataTable.columns.adjust().draw(); // Redraw the DataTable
+		},
+		error: function() {
+			$("#loader").hide();
+			alert('Error occured');
+		}
+	});
+}
+</script>
+<script>
+function getPopulation(num){
+	$("#loader").show()
+	var digits = $("#defaultDigits").html();
+	var url_req = "/population_benford/"+num+"/"+digits ;
+	var data = "id="+num+"&digits"
+	$.ajax({
+	  type : 'GET',
+	  url : url_req,
+      //headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+	  //data : {
+	  //	"id":num.toString(),
+	  //	"digits":digits.toString()
+	  //	},
+	  success: function(dataRaw) {
+			$("#loader").hide();
+			var result = JSON.parse(dataRaw)
+			var expected = Object.keys(result.points.expected).map((key) => [result.points.expected[key] * 100]);
+			var found = Object.keys(result.points.found).map((key) => [result.points.found[key] * 100]);
+			$('#containerBenfordPopulation').highcharts().redraw();
+			containerBenfordPopulationChart.series[1].setData(expected);
+			containerBenfordPopulationChart.series[0].setData(found);
 		},
 		error: function() {
 			$("#loader").hide();
